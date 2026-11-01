@@ -1,0 +1,4 @@
+<Bindings>
+    <Binding name="MISTPAD_MENU" header="MISTPAD">Mistpad:ToggleMenu()</Binding>
+    <Binding name="MISTPAD_INVENTORY">Mistpad:ToggleInventory()</Binding>
+</Bindings>
