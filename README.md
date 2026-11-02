@@ -2,6 +2,10 @@
 
 A standalone handheld window interface for World of Warcraft, targeting the Steam Deck's 1280×800 touchscreen. Development targets Retail first, followed by a WoW: Forever compatibility pass after its planned 4 November 2026 release. No WoWU dependency, companion application or external art package. Disable WoWU when using Mistpad.
 
+## Version 1.0.1
+
+Fixed CurseForge packaging: addon files and Mistpad.toc now live at the repository root, and `.pkgmeta` packages them directly as `Mistpad`. No addon behavior changes. No tests run.
+
 ## Version 1.0.0
 
 Retail v1.0 build with the established fixed window scales, edge gestures, single-row menu and touch-friendly bags. The Bags title is centered inside the top bar, and cleanup is at the upper left above the item grid. No tests run; live testing is handled by the user.

@@ -2,7 +2,7 @@
 ## Title: Mistpad
 ## Notes: Touch-friendly handheld window interface for Retail.
 ## Author: Mistpad
-## Version: 1.0.0
+## Version: 1.0.1
 ## SavedVariables: MistpadDB
 Core.lua
 Panels.lua

@@ -1,3 +1,8 @@
+# Mistpad 1.0.1
+
+- Fixed CurseForge packaging by placing Mistpad.toc and the addon files at the repository root.
+- The packaged addon folder is Mistpad. No gameplay or interface behavior changes.
+
 # Mistpad 1.0.0
 
 Initial Retail release for handheld touchscreen play.
