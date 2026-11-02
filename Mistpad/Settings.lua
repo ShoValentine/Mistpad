@@ -2,13 +2,14 @@ local _, M = ...
 function M:ShowMistpadSettings()
     if not self:CanChange() then return end
     if not self.SettingsPanel then
-        local panel = self:CreatePanel("MistpadSettings", "Settings", 360, 314)
+        local panel = self:CreatePanel("MistpadSettings", "Settings", 360, 388)
         self.SettingsPanel = panel
         local entries = {
             {"Bag Options", function() M:OpenBagOptions() end},
             {"Side Panels", function() M:ShowSidePanelSettings() end},
-            {"Game Menu", function() ToggleGameMenu() end},
+            {"Game Menu", function() securecallfunction(GameMenuFrame_Show) end},
         }
+        panel:SetHeight(92 + #entries * 74)
         for index, entry in ipairs(entries) do
             local button = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
             button:SetSize(300, 58); button:SetPoint("TOP", 0, -66 - (index - 1) * 74)

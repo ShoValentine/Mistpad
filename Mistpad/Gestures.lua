@@ -8,8 +8,6 @@ tracker:Hide()
 local function Stop(finished)
     if current then
         if not finished then current.panel:EndDrag(false) end
-        current.edge.fill:Hide()
-        current.edge.label:Hide()
     end
     current = nil
     tracker:Hide()
@@ -32,12 +30,8 @@ tracker:SetScript("OnUpdate", function()
         current.cancelled = true
     end
     local armed = not current.cancelled and inward >= THRESHOLD and inward > sideways * 1.3
-    local progress = math.max(0, math.min(1, inward / THRESHOLD))
     if not current.panel.dragging then Stop(); return end
     current.panel:UpdateDrag(current.cancelled and 0 or inward)
-    current.edge.fill:SetAlpha(current.cancelled and 0.1 or 0.2 + progress * 0.65)
-    current.edge.label:SetText(current.cancelled and "Release to cancel" or
-        (armed and "Release: " or "Swipe: ") .. current.spec.label)
     if not IsMouseButtonDown("LeftButton") then
         current.panel:EndDrag(armed)
         Stop(true)
@@ -65,17 +59,6 @@ function M:CreateGestures()
             edge:SetPoint("TOP" .. spec.side, UIParent, "TOP" .. spec.side, 0, -64)
             edge:SetPoint("BOTTOM" .. spec.side, UIParent, "BOTTOM" .. spec.side, 0, 64)
         end
-        local line = edge:CreateTexture(nil, "ARTWORK")
-        if spec.vertical then line:SetSize(160, 4) else line:SetSize(4, 120) end
-        line:SetPoint("CENTER")
-        line:SetColorTexture(0.8, 0.65, 0.35, 0.6)
-        edge.fill = edge:CreateTexture(nil, "OVERLAY")
-        edge.fill:SetAllPoints()
-        edge.fill:SetColorTexture(0.8, 0.65, 0.35, 0.4)
-        edge.fill:Hide()
-        edge.label = edge:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-        edge.label:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
-        edge.label:Hide()
         edge:SetScript("OnMouseDown", function(_, button)
             if button ~= "LeftButton" or InCombatLockdown() or current then return end
             local panel = M:GetGesturePanel(spec.side)
@@ -86,9 +69,6 @@ function M:CreateGestures()
             if not panel:BeginDrag() then return end
             local x, y = GetCursorPosition()
             current = {edge = edge, spec = spec, panel = panel, x = x, y = y}
-            edge.fill:Show()
-            edge.label:SetText("Swipe: " .. spec.label)
-            edge.label:Show()
             tracker:Show()
         end)
         edge:SetScript("OnHide", function()

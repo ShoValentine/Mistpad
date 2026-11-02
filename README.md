@@ -1,78 +1,156 @@
 # Mistpad
 
-A standalone handheld window interface for World of Warcraft. Development targets **Retail first**, followed by a WoW: Forever compatibility pass planned for **4 November 2026**, once its client is available. No WoWU dependency or companion application.
+A standalone handheld window interface for World of Warcraft, targeting the Steam Deck's 1280×800 touchscreen. Development targets Retail first, followed by a WoW: Forever compatibility pass after its planned 4 November 2026 release. No WoWU dependency, companion application or external art package. Disable WoWU when using Mistpad.
 
-## Version 0.8.0 — configurable side panels
+## Version 1.0.0
 
-The left edge now opens **Character**, and the right edge opens **Quests** by default. **Top Menu → Settings → Side Panels** lets each edge choose Character, Quests, or World Map independently; choices persist after reload. These are the currently supported targets. Quests and map share Blizzard's native Map & Quest Log frame on Retail, so that frame is opened in the chosen mode rather than duplicated.
+Retail v1.0 build with the established fixed window scales, edge gestures, single-row menu and touch-friendly bags. The Bags title is centered inside the top bar, and cleanup is at the upper left above the item grid. No tests run; live testing is handled by the user.
 
-Side panels retain native functionality, the immediate peek, finger-following pull and snap. Touching outside dismisses them with an animation toward their originating edge. Native close buttons are hidden during a Mistpad side-panel session and restored with the original scale/anchors when it closes. Changing an assignment closes active side panels before applying the next target.
+## Version 0.10.29 — Professions, Contacts and clean gestures
 
-Moved captions closer to the button art, aligned text to the top of its label area, and shortened each row by another 24 UI units. The artwork stays at the same size and proportions. A one-row menu is now 192 UI units tall.
+Fixed Professions scaling is 105%; Contacts (FriendsFrame) is 130%. Removed the center-screen gesture prompts, yellow edge guide lines and temporary gesture tint. Invisible touch areas and slide interactions remain active. No tests run.
 
-Removed the Mistpad title from the top menu and reduced outer vertical padding to 12 units on each side. A one-row menu is now 216 UI units tall instead of 292. Artwork remains at 2× scale, with the same icon clipping area, touch targets, and label space.
+## Version 0.10.28 — scale before side gestures
 
-Micro-button artwork now copies only known button surfaces and bounded notification textures, instead of traversing arbitrary child frames. Each enlarged icon has its own clipped artwork area, preventing Customer Support alerts or other oversized regions from spilling into neighbouring buttons. Labels use shorter captions, wrapping, and more vertical space.
+Side windows now finish fixed scaling before their gesture captures dimensions, then retain that viewport-fitted scale throughout the slide and while open. This removes the post-slide resize. The right-side map inset is reduced to 24 scaled units plus four units of clearance, without measuring tabs against transient frame positions. Map/Quests remains 110%. No tests run.
 
-Pull from the top edge to reveal an enlarged version of the client's micro menu. It uses the native button artwork at 2× scale, including the character portrait and normal/pressed/highlight/disabled states, with large touch areas and labels. Entries follow the current client's micro-button list and restrictions; narrower screens wrap into additional rows. The persistent HUD micro menu is not moved or resized.
+## Version 0.10.27 — fit Talents and expose map tabs
 
-The **Settings** micro button opens **Bag Options** and **Game Menu**. All bag settings now live in this independent Settings panel, accessible without opening bags. The bag has no cog, close button, or helper text, and its header is shorter. Mistpad panels and the item context menu have no explicit Close/X buttons; touch outside or press Escape to dismiss them. Blizzard's original windows retain their controls in fallback mode.
+The Spells/Talents outer window now limits its 110% preference to the available viewport, with room for the bottom tabs; its initial native scale can be captured before Blizzard fits the window to the screen. Size changes reapply this limit. The talent canvas remains 200% and internal touch layouts remain unchanged. Map/Quests is 110%. A right-edge map slide reserves space for the protruding quest tabs plus an eight-unit gap. No tests run.
 
-**Max Height (rows)** caps the number of visible item rows (1–16, default 8), with scrolling for the remaining contents and a further cap to fit the screen. **Anchor** selects Left, Middle, or Right along the bottom edge (default Middle), for both normal opening and bottom-edge pulls.
+## Version 0.10.26 — fixed window scales
 
-Touching outside the bag closes it, including touches on other UI; options, item menus, split selectors, and drop confirmations count as part of the module. Closing slides bags down and the micro menu up to their originating edges. Blizzard's actual bag close completes immediately, including native keybind bookkeeping. Reopening cancels an unfinished slide-out; closing during combat is immediate.
+Removed the Scaling settings interface and retired saved developer overrides. Fixed defaults are centralized in `Mistpad/ScaleDefaults.lua`: Spells and Talents 110%, talent canvas 200%, Character 145%, Map/Quests 115%, Guild and Communities 125%, Group Finder 130%, Collections 115%, Adventure Guide 115%. Unlisted native windows use their original scale. Talent scrolling and separate class/spec pages are enabled; Ctrl-wheel no longer changes the fixed canvas size. The finished Spellbook/Talents artwork, internal touch sizing and layout remain unchanged. No tests run.
 
-The hold menu now stays open after release and ordinary bag refreshes. Its opening release (including duplicate touch-generated clicks) cannot use or pick up the original item. Choosing an action, explicitly dismissing the menu, closing the bags, entering combat, or changing the selected item/stack dismisses it.
+## Version 0.10.25 — menu hover and Contacts artwork
 
-## Bag settings and item actions
+Menu buttons retain their normal artwork on mouseover and show a separate yellow glow. Contacts uses Blizzard's blue Battlenet portrait silhouettes over the same native micro-button background as the other buttons, without the circular gold portrait border. No tests run.
 
-Bag Options includes **Dynamic Contents** (hide all empty slots), **Item Size** (32–80 UI units), **Search Bar** (off by default), and **Hold for menu** (0.5–3 seconds; default 1.5). These settings persist after reload. Disabling search clears the active search and reclaims its header row. Small and Medium retain 4/8 columns as item size changes; Large recalculates how many columns fit.
+## Version 0.10.24 — menu and side-panel options
 
-Hold still over an item to open a touch-sized context menu beside it. Available actions include Use, Equip, Split, Drop, Compare, Preview, Disenchant, Mill, and Prospect, based on the item, stack, and learned professions. Split opens an amount selector; Drop asks for confirmation before deleting the entire stack. A quick swipe scrolls; holding 0.45 seconds and then moving still picks up the item. Holding without moving until the configured delay opens the menu and consumes the original release.
+Customer Support becomes Contacts in Mistpad's menu, with a Friends icon and the native Friends window. Side Panels now offers all menu destinations except Settings and Shop, plus World Map, in scrollable Left/Right columns. Scaling opens Blizz Frames directly; the deferred custom Professions category is removed. Game Menu opens through a secure call to Blizzard's GameMenuFrame_Show instead of the direct ToggleGameMenu path. No tests run; the reported blocked-action popup needs live rechecking.
 
-Use/Equip and legacy processing spells use Blizzard's secure action buttons. Modern processing uses a learned salvage recipe that explicitly accepts the selected item. Some Retail processing recipes are only exposed after opening the corresponding profession; unavailable actions show an explanation. Blizzard enforces final skill, expansion, target eligibility, and reagent requirements. Context menus close in combat, and item identity/stack changes invalidate pending actions and discard confirmations.
+## Version 0.10.23 — single-row menu
 
-The bag module keeps Blizzard's frame, portrait, fonts, item buttons, quality borders, search, sort, and money display. Settings → Bag Options offers three saved size choices:
+Top-menu buttons always occupy a single row. Tiles scale uniformly when needed to fit the available screen width, preserving artwork proportions. Includes the return to Blizzard's original Character panel. No tests run.
 
-- **Small:** 4 columns, vertically scrollable.
-- **Medium:** 8 columns (444 UI units wide, about one third of a 1280-wide UI).
-- **Large:** full available width with 24-unit side margins and as many 48-unit item columns as fit.
+## Version 0.10.22 — restore Blizzard Character
 
-All carried bags, including the reagent bag, appear in one grid, ordered by bag and slot. Drag up/down over items or empty grid space to scroll; wheel and scrollbar also work. Tap retains the native item action. Hold for at least 0.45 seconds before dragging to move an item. Modified clicks and cursor-held items keep their native behaviour. The native bag portrait still provides Blizzard's filtering/sorting options. Medium is the default; settings persist after reload.
+Removed the custom Character panel and its dedicated scaling controls. Character opens Blizzard's original window from the left-edge gesture, Mistpad menu and slash commands; the standard Character keybind uses Blizzard's own handler. Overall Character scaling remains under Scaling → Blizz Frames. Retired custom scaling values are cleared on login. No tests run.
 
-All four interaction bands are 64 UI units deep (excluding corners). Touch immediately reveals a 32-unit strip of the destination panel; dragging inward pulls it one-to-one. Release after 64 units of inward travel to snap open, or release earlier to retract. Native controls become interactive after the opening snap finishes. Escape, combat, and disabling gestures cancel an active pull. Inventory requires combined bags and enabled Inventory presentation. Retail quests and map use Blizzard's shared Map & Quest Log window, opened in the corresponding mode from opposite edges. Native window scale, clamping, and anchors are restored on close.
+## Version 0.10.21 — header finishing adjustments
 
-- Enlarged Blizzard micro menu with native artwork and a Settings entry.
-- Shared opening animation and Escape-to-close menu support.
-- Responsive unified bag grid presented from the bottom, using Blizzard's actual item controls.
-- Existing bag keybinds continue to open Blizzard's bags with Mistpad presentation.
-- Four edge gestures enabled by default: bottom → bags, top → menu, left → native quests, right → native map, with drag feedback and release-to-open.
-- Saved Inventory, gesture, and animation switches; original bag presentation can be restored.
-- No persistent HUD changes. Only small optional gesture handles appear at the middle of each edge.
+Moved the unchanged-size X five units right, increased the centered title font from 20 to 23, and extended the native nine-slice's left boundary by 16 root-frame units to cover the content edge. Content dimensions and talent positioning remain unchanged. No tests run.
 
-This is the first development slice, not the complete window redesign. Other menu entries open native windows. Continuous drag-to-open and release snapping work on all four edges. Long-press tooltips, inertial scrolling, gesture remapping, controller focus navigation, and the remaining replacement windows are future work. Mouse-based swipe recognition requires hardware testing; direct multitouch input is not assumed.
+## Version 0.10.20 — consistent chrome and centered talent actions
 
-## Install for Retail
+The native non-portrait nine-slice now scales as one complete layout instead of separately stretched top pieces, keeping the side/corner joins consistent. Header height is derived from the unchanged X size plus 12 units. The X is centered on a fixed-size, non-interactive target inset from the root's top-right corner. Apply Changes and reset/undo share a centered footer group; the left search field fits before that group. Content dimensions remain unchanged. No tests run.
 
-1. Copy the inner `Mistpad` folder into your Retail installation's `Interface/AddOns/` folder. The resulting file must be `Interface/AddOns/Mistpad/Mistpad.toc`.
-2. Disable WoWU; the addons are alternatives. Mistpad checks the addon identifier `WoWU` at login and declines to start if it is enabled.
-3. Enable Mistpad in the character-selection AddOns list. If the client marks it out of date, enable “Load out of date AddOns” for this development build and report `/mistpad status` so the interface metadata can be updated.
-4. Enable Blizzard's **combined bags** option. Individual bag windows are intentionally left native in this prototype.
-5. Log in and type `/mistpad`. Set menu and Inventory bindings in the game's Key Bindings interface.
+## Header alignment
 
-Commands: `/mistpad bags`, `/mistpad inventory` (toggle presentation), `/mistpad gestures`, `/mistpad animation`, `/mistpad status`, `/mistpad help`.
+The Spells window title now has equal left/right insets, centering it on the whole window. The unchanged-size red X anchors to that same title area's vertical centre instead of duplicating a vertical offset in a differently scaled button. Content dimensions and window scale remain unchanged. No tests run.
 
-Gestures are enabled by default. Press in the outer 64 UI units of any edge, drag inward at least 64 UI units, and release to open. Gold handles mark each edge. Short, outward, and predominantly sideways drags cancel; the centre label shows whether release will open the window. The outer 64-unit corner squares are excluded to avoid ambiguous directions, and overlapping higher-layer HUD controls retain input priority. `/mistpad gestures` is a fallback switch for troubleshooting. Opening/repositioning Mistpad windows is blocked during combat; native bag binds remain under Blizzard's control.
+## Plain Spells window corner
 
-## Architecture
+Removed the Spells window's portrait and replaced its nine-slice portrait corner with Blizzard's normal metal top-left corner. Both top corners use the enlarged header treatment. The existing-size red X is anchored by its right edge eight units inside the window, rather than using a scale-divided centre offset that let it escape. Native content dimensions and the 110% window default remain unchanged. No tests run.
 
-`Core.lua` owns startup, saved settings, commands, and combat gates. `Panels.lua` owns panel styling and animation. `InventoryLayout.lua` calculates bag geometry. `Inventory.lua` reflows native combined-bag buttons into a scroll canvas and adds reagent-slot buttons from Blizzard's template. It wraps click/drag scripts to distinguish scrolling from item movement, and restores native parents, geometry, and scripts on close or fallback. Global bag functions remain intact. `NativePanels.lua` adapts native Inventory and Map & Quest Log windows to the shared gesture contract. `MicroMenu.lua` reads native micro-button entries and artwork; `Menu.lua` owns the top sliding panel; `Settings.lua` routes Bag Options and Game Menu. `Gestures.lua` handles optional edge input. `Bindings.xml` declares assignable actions.
+## Header thickness and portrait alignment
 
-No external libraries, copied WoWU code, or packaged Blizzard art files are required. Textures and fonts reference the installed game. Blizzard API reference checked against the [live UI source](https://github.com/Gethe/wow-ui-source/tree/live/Interface/AddOns/Blizzard_UIPanels_Game/Mainline).
+Added 12 UI units to the native header height while preserving the existing red X and maximize/minimize sizes. The portrait container scales its icon and mask together; the native portrait corner uses the same proportional size and anchor offsets. The outer window accommodates the additional height without shrinking content. No tests run.
 
-## Validation
+## Native enlarged header, preserved content
 
-See [the in-game checklist](docs/TESTING.md). No WoW client or Steam Deck is available in this workspace, so visual layout, restricted-action behaviour, and touch/controller support are **not yet verified in game**. The TOC interface list is provisional, not a claim that each client build has been tested.
+Removed the added title-bar frame. The original PlayerSpells nine-slice top edge and top-right corner are enlarged in place, with the larger native close/maximize controls retained. The outer window gains the extra header height; Specialization, Talents and Spellbook keep their native content dimensions rather than being shortened. The 110% default and swipe changes remain. No tests run.
 
+## Spells window finishing adjustments
 
+The outer Spells and Talents default is now 110%; upgrading selects that default once, and future manual overrides remain available. The title bar is portrait-height, with larger title text, close and maximize/minimize controls, while the content shifts down to leave room. Spellbook swipes now detect the parchment by its screen rectangle and accept outer-window background focus, instead of requiring focus on the paged grid. Mouse-up detection has a held-button fallback, without prematurely cancelling touch inputs that do not report a held button. No tests run.
 
+## Specialization and Spellbook touch sizing
+
+Talent-page centering now measures the rendered visible nodes against the viewport after layout, correcting their actual on-screen offset rather than relying only on trait coordinates. Specialization yellow text, role/sample icons and Activate buttons are enlarged. Spellbook pages scale their native contents 1.35× inside the same parchment area and reflow to two columns with native pagination. Mage/General category tabs and page controls are enlarged. Horizontal swipes over parchment/text change pages, while icons retain native casting and action-bar dragging. No tests run.
+
+## Talent positioning and touch controls
+
+Resets the saved outer Spells and Talents window scale to native 100% once, preserving canvas zoom. Selected-page centering now ignores nodes hidden by Blizzard, with a centered horizontal starting position when scrolling is needed. The first node reserves space for the top selectors, a gap and its enlarged radius. Removed the added bottom-right navigation pad; wheel and empty-space dragging remain. Enlarged bottom-left native tabs and the loadout/search/apply/reset/undo controls, with footer anchors adjusted for the larger sizes. No tests run.
+
+## Separate class/spec talent pages
+
+The native Talents tab now has class and current-specialization page buttons (for example Mage / Arcane). One branch is visible and centered at a time; the current talent canvas zoom and scrolling work within the selected branch. Native talent data, purchase and commit handlers remain intact. Scaling → Blizz Frames → Spells and Talents includes a Separate class / specialization pages toggle to return to the original side-by-side layout. Inspection remains native. No tests run.
+
+## Talent canvas scale and scrolling
+
+Scaling → Blizz Frames now includes Talent canvas size and Talent scrolling/panning beneath Spells and Talents. Canvas scaling covers 50–200% separately from the surrounding window, using Blizzard's native talent zoom/pan methods. Wheel scrolls vertically, Shift-wheel horizontally, Ctrl-wheel adjusts the saved canvas scale, and dragging empty tree space pans. Native-art directional controls and a return-to-origin button are provided inside the tree. Node purchase, choice and commit handlers remain native. Settings persist; combat defers changes. No tests run.
+
+## Native Blizzard window scale experiment
+
+Settings → Scaling → Blizz Frames adds independent whole-window percentages for Character, Professions, Spells and Talents, Achievements, Quests, Guild and Communities, Group Finder, Collections and Adventure Guide. Controls cover 50–200% in 5% steps, with numerical inputs, individual resets and a category reset. Saved values apply to loaded native windows, reapply on opening, and wait until combat/gestures finish. Quests shares its native frame with World Map. Use `/mistpad character original` to preview native Character, since ordinary Character bindings open Mistpad's replacement. Blizzard scaling refusals appear beside the relevant control. No tests run.
+
+## Scaling categories
+
+Settings → Scaling now opens category buttons for Character and Professions. Character retains its existing controls. Professions contains one saved Frame size preference (75–150%, 5% increments, numerical input and Reset), reserved for the future Professions module; it does not change Blizzard's native profession window. Back buttons return to the category menu. `/mistpad scaling` opens this same menu. No tests run.
+
+## Equipment alignment and Reputation layout
+
+Equipment columns now anchor symmetrically to the model inset, including their decorative borders, and the two weapon slots are centered as a pair. Reputation/Currency categories use plain bordered rows rather than stat-header ornaments. Reputation factions are indented, with standing text inside right-aligned progress bars instead of thin underlines. No tests run.
+
+## Border rendering correction
+
+Removed the nine-slice layout that produced oversized black/metal strips in game. All owned Character frames now use a consistent fixed-size Blizzard tooltip-border backdrop. Corrected stat-header atlases, restored bottom buttons and the raised portrait layer are retained. No tests run.
+
+## Header art, corners and layering
+
+Restored the previous bottom-tab buttons. Atlas textures now use the native coordinate-reset option instead of applying sheet coordinates twice. Native nine-slice layouts replace the hand-cropped frame borders, and the portrait/ring render on a separate non-interactive layer above the title bar. No tests run, per the user's preference.
+
+## Confirmed opening error corrected
+
+The in-game error identified `SetNormalTexture(nil)` during sidebar creation. Sidebar and model buttons now hide unwanted existing texture regions with alpha instead of passing nil to button texture setters. Opening diagnostics remain enabled. No tests run, per the user's preference.
+
+## Opening diagnostics and safe artwork fallback
+
+Character opening now catches and reports the exact failing stage and Lua error in chat, including repeated attempts after an incomplete build. Invalid/missing atlas metadata falls back to ordinary textures instead of blocking construction. Native binding, menu and gesture entry points share the same guarded opening path. No automated or in-game tests were run for this build.
+
+## Character opening correction
+
+Removed the native bottom-tab template and selection-helper dependency introduced in 0.10.2. Plain Mistpad-owned buttons now display the same native active/inactive tab artwork, without Blizzard mixin/parent assumptions. This build has not been tested; replace the addon folder and reload before checking it in game.
+
+## Closer native Character styling
+
+Corrected the stat-header atlas crop, centered white category captions and item-level number, white stat values, native bottom-tab artwork, image-based model controls and sidebar icons without red button faces. The character backdrop now uses Blizzard's original quadrant proportions/crops and racial dimming. These changes follow the in-game screenshot comparison; another Retail visual pass is still needed.
+
+## Character interaction and artwork polish
+
+Scroll arrows now use Blizzard textures with pressed/disabled states, and hide when unnecessary. Equipment slots are inert outside Equipment Manager. In Equipment Manager, every occupied slot offers **Unequip** first; it moves the item to an empty regular bag slot and refuses when bags are full or the item/cursor state changed. The panel also uses native metal edging, a portrait bezel/mask, paper-doll slot ornaments and the native ornate stat-header art. See [art references](docs/CHARACTER-ART.md).
+
+## Custom Character panel
+
+Character is now a Mistpad-owned window, following the supplied Blizzard screenshots: a live player model with surrounding equipment, Stats/Titles/Equipment Manager on the right, and Character/Reputation/Currency tabs below. Native APIs provide data, inventory actions, comparisons, titles, equipment sets, reputations and currencies. Protected Blizzard Character frames are not resized or reparented.
+
+The Character-assigned edge, top-menu Character tile and recognised native Character bindings open the replacement. Use `/mistpad character original` for Blizzard's fallback. Touch outside or press Escape to close; the panel slides back toward its edge. The persistent gameplay HUD remains unchanged.
+
+The old Developer Scaling editor and native-frame scaling framework have been removed. **Settings → Character Scaling** now contains ten focused controls for this custom panel: overall size, equipment slots, model area, general text, buttons, tabs, tab text, stat text, row height and tooltips. Values apply live, reflow layout and persist between sessions. See [Character behavior and known differences](docs/CHARACTER.md) and [scaling controls](docs/SCALING.md).
+
+This is the first custom Character build. Model framing, texture alignment, restricted actions and physical touch still require Retail testing. Advanced native features not yet recreated are documented; use the original fallback for them.
+
+## Existing modules
+
+- Four 64-unit edge interaction bands, excluding corners. Touch reveals a 32-unit peek; pull inward and release after 64 units to snap open. Short pulls retract. The user has confirmed these gestures work on Steam Deck.
+- Bottom: unified carried bags using native combined-bag item buttons. Small/Medium/Large layouts, dynamic contents, item size, optional search, row caps and opening anchor.
+- Stationary item holds open a persistent touch context menu. Native Use/Equip, Split, Drop confirmation, Compare, Preview and eligible processing actions are supported. Quick swipes scroll; a shorter hold followed by movement drags an item.
+- Top: enlarged native micro-menu artwork and labels, with Settings routing to Mistpad's options.
+- Left/right: choose Character, Quests or World Map under Settings → Side Panels. Character defaults left; Quests defaults right. Map and quests retain Blizzard's actual shared map frame and functionality.
+- Touch outside and Escape dismiss windows. No custom close buttons. Native fallback geometry is restored when a native managed window closes. Combat closes custom panels and gates window/item changes.
+
+## Install
+
+Copy the inner `Mistpad` folder from the ZIP into Retail's `Interface/AddOns/`. The resulting path must be `Interface/AddOns/Mistpad/Mistpad.toc`. Disable WoWU and enable Mistpad. Combined bags must be enabled for the inventory module. Interface metadata is provisional; report `/mistpad status` if the client marks the addon out of date.
+
+Commands: `/mistpad`, `/mistpad character`, `/mistpad character original`, `/mistpad scaling`, `/mistpad bags`, `/mistpad inventory`, `/mistpad gestures`, `/mistpad animation`, `/mistpad status`.
+
+## Development and validation
+
+`CharacterData.lua` reads native data and item alternatives. `CharacterPanel.lua` owns the Character UI, actions, native binding routing and event-driven refresh. `CharacterSettings.lua` centralises its defaults and scaling controls. The panel never searches every Blizzard window or exposes per-object frame trees.
+
+`NativePanels.lua` and `Gestures.lua` share edge movement across native bags/maps and the owned Character panel. `Inventory.lua` adapts native combined bags; `MicroMenu.lua` copies bounded native button art. Textures and fonts reference the installed client.
+
+Automated Lua mocks cover gestures, native restoration, bags, item actions, close animations, micro-menu routing, and the new Character panel's data/actions, bounded rows, mixed scaling extremes, combat deferral and native binding semantics. They pass locally, but do not substitute for Retail visual/protected-action checks. See [the testing checklist](docs/TESTING.md).

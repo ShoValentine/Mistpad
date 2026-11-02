@@ -33,6 +33,7 @@ local outside = CreateFrame("Frame")
 outside:RegisterEvent("GLOBAL_MOUSE_DOWN")
 outside:SetScript("OnEvent", function()
     if InCombatLockdown() then return end
+    if M.IsScalingPanelMouseOver and M:IsScalingPanelMouseOver() then return end
     for side, controller in pairs(controllers) do
         if side ~= "BOTTOM" and controller.saved and controller.frame:IsShown()
             and not controller.dragging and not controller.snapping and not controller.frame:IsMouseOver() then
@@ -70,7 +71,7 @@ function M:GetGesturePanel(side)
     local controller = {side = side}
     controllers[side] = controller
 
-    function controller:BeginDrag()
+    function controller:BeginDrag(targetOverride)
         if InCombatLockdown() then return false end
         local frame
         if self.side == "BOTTOM" then
@@ -91,12 +92,12 @@ function M:GetGesturePanel(side)
             OpenAllBags()
             self.close = function() CloseAllBags() end
         else
-            local target = M:GetSidePanelTarget(self.side)
-            frame = _G[target.frame]
+            local target = targetOverride or M:GetSidePanelTarget(self.side)
+            frame = M:ResolveSidePanelFrame(target)
             if frame and frame:IsShown() then return false end
             target.open()
-            frame = _G[target.frame]
-            self.close = function(f) HideUIPanel(f) end
+            frame = M:ResolveSidePanelFrame(target)
+            self.close = target.custom and function(f) f:Hide() end or function(f) HideUIPanel(f) end
         end
         if not frame or not frame:IsShown() then
             if frame then M.nativeDragFrames[frame] = nil end
@@ -104,6 +105,13 @@ function M:GetGesturePanel(side)
         end
         self.frame = frame
         M:CancelSlide(frame)
+        if self.side~="BOTTOM" then
+            -- Finish the window's layout and fixed sizing synchronously, before
+            -- recording its scale or calculating the gesture's travel distance.
+            if frame==PlayerSpellsFrame and M.PlayerSpellsTouch then M.PlayerSpellsTouch:Apply() end
+            if M.BlizzFrameScaling then M.BlizzFrameScaling:Apply() end
+            if frame==PlayerSpellsFrame and M.TalentScaling then M.TalentScaling:Apply() end
+        end
         self.saved = Capture(frame)
         if self.side ~= "BOTTOM" then
             local close = frame.CloseButton or (frame.GetCloseButton and frame:GetCloseButton())
@@ -150,16 +158,28 @@ function M:GetGesturePanel(side)
         local width, height = math.max(1, frame:GetWidth()), math.max(1, frame:GetHeight())
         -- Work in UIParent units even when the native frame has a scaled parent.
         local parentRatio = frame:GetParent():GetEffectiveScale() / UIParent:GetEffectiveScale()
-        self.ratio = math.min(self.side == "BOTTOM" and not M.inventoryUsesLayout and 1.45 or 1,
+        local desired = self.side == "BOTTOM" and (not M.inventoryUsesLayout and 1.45 or 1)
+            or self.saved.scale*parentRatio
+        self.ratio = math.min(desired,
             (UIParent:GetWidth() - MARGIN * 2) / width,
             (UIParent:GetHeight() - MARGIN * 2) / height)
         frame:SetScale(self.ratio / parentRatio)
+        self:RefreshMapRightOutset()
         frame:SetClampedToScreen(false)
         self.distance = 0
         self.travel = (self.side == "BOTTOM" and height or width) * self.ratio - PEEK + MARGIN
         self.dragging = true
         self:UpdateDrag(0)
         return true
+    end
+
+    function controller:RefreshMapRightOutset()
+        self.mapRightOutset=nil
+        if self.side~="RIGHT" or self.frame~=WorldMapFrame then return end
+        local ratio=self.ratio
+        local protrusion=24*ratio
+        -- The ordinary resting position is 24 units beyond the screen edge.
+        self.mapRightOutset=MARGIN+protrusion+4
     end
 
     function controller:Position(distance)
@@ -169,6 +189,10 @@ function M:GetGesturePanel(side)
         local point = self.side
         local x = self.side == "LEFT" and -offset or self.side == "RIGHT" and offset or 0
         local y = self.side == "BOTTOM" and -offset or 0
+        if self.side == "RIGHT" and self.mapRightOutset then
+            local progress=math.max(0,math.min(1,distance/math.max(1,self.travel)))
+            x=x-self.mapRightOutset*progress/ratio
+        end
         if self.side == "BOTTOM" and M.inventoryUsesLayout and M.BagLayout then
             point, x = M.BagLayout.Anchor(M.db, ratio)
         end
@@ -181,6 +205,13 @@ function M:GetGesturePanel(side)
         local point, x, y = self:Position(self.distance)
         self.frame:ClearAllPoints()
         self.frame:SetPoint(point, UIParent, point, x, y)
+    end
+
+    function controller:UpdateRestingPosition()
+        if self.dragging or self.snapping then return end
+        M:CancelSlide(self.frame)
+        local point, x, y = self:Position(self.distance)
+        self.frame:ClearAllPoints(); self.frame:SetPoint(point, UIParent, point, x, y)
     end
 
     function controller:EndDrag(open)
@@ -198,6 +229,7 @@ function M:GetGesturePanel(side)
             self.snapping = false
             self.shield:Hide()
             if not open then self.close(self.frame) end
+            if open and M.BlizzFrameScaling then M.BlizzFrameScaling:Apply() end
         end)
     end
     return controller

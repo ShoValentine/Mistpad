@@ -2,6 +2,7 @@ local _, M = ...
 local original, scroll, content, options, scrollbar
 local changing, touch
 local itemStates, widgetStates, reagentButtons = {}, {}, {}
+local titleTextState
 local pointer = CreateFrame("Frame")
 pointer:Hide()
 
@@ -187,6 +188,12 @@ function M:RestoreInventory()
         if saved.shown ~= nil then widget:SetShown(saved.shown) end
     end
     widgetStates = {}
+    if titleTextState then
+        local text=titleTextState.text
+        text:ClearAllPoints()
+        for _,point in ipairs(titleTextState.points) do text:SetPoint(unpack(point)) end
+        titleTextState=nil
+    end
     for _, button in ipairs(reagentButtons) do button:Hide() end
     if self.reagentFrameState then
         local reagent = self.reagentFrameState
@@ -259,9 +266,17 @@ function M:RefreshInventory(animate)
     if frame.TitleContainer then
         SaveWidget(frame.TitleContainer)
         frame.TitleContainer:ClearAllPoints()
-        frame.TitleContainer:SetPoint("TOPLEFT", frame, "TOPLEFT", 62, -8)
-        frame.TitleContainer:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -18, -8)
-        frame.TitleContainer:SetHeight(28)
+        frame.TitleContainer:SetPoint("TOPLEFT", frame, "TOPLEFT", 18, 0)
+        frame.TitleContainer:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -18, 0)
+        frame.TitleContainer:SetHeight(20)
+        local text=frame.TitleContainer.TitleText
+        if text then
+            if not titleTextState then
+                titleTextState={text=text,points={}}
+                for i=1,text:GetNumPoints() do titleTextState.points[i]={text:GetPoint(i)} end
+            end
+            text:ClearAllPoints();text:SetPoint("CENTER",frame.TitleContainer,"CENTER",0,0)
+        end
     end
     scroll:ClearAllPoints()
     scroll:SetPoint("TOPLEFT", layout.padding, -layout.header)
@@ -294,16 +309,25 @@ function M:RefreshInventory(animate)
     local sort = BagItemAutoSortButton
     if sort and sort:GetParent() == frame then
         SaveWidget(sort)
-        sort:ClearAllPoints(); sort:SetPoint("BOTTOMLEFT", 18, 7)
+        sort:ClearAllPoints(); sort:SetPoint("TOPLEFT", frame, "TOPLEFT", 28, -34)
         sort:SetSize(28, 28)
     end
     SetScroll(scroll:GetVerticalScroll())
     if not (self.nativeDragFrames and self.nativeDragFrames[frame]) then
         self:CancelSlide(frame)
         frame:SetClampedToScreen(false)
-        local anchor, x = self.BagLayout.Anchor(self.db)
-        if animate then self:Slide(frame, anchor, x, 24, 0, -layout.height)
-        else frame:ClearAllPoints(); frame:SetPoint(anchor, UIParent, anchor, x, 24) end
+        local ratio = frame:GetEffectiveScale() / UIParent:GetEffectiveScale()
+        local anchor, x = self.BagLayout.Anchor(self.db, ratio)
+        if animate then self:Slide(frame, anchor, x, 24 / ratio, 0, -layout.height)
+        else frame:ClearAllPoints(); frame:SetPoint(anchor, UIParent, anchor, x, 24 / ratio) end
+    else
+        local owner = self.nativeDragFrames[frame]
+        if owner.frame == frame and owner.saved and not owner.dragging and not owner.snapping then
+            owner.ratio = frame:GetEffectiveScale() / UIParent:GetEffectiveScale()
+            owner.travel = frame:GetHeight() * owner.ratio - 32 + 24
+            owner.distance = owner.travel
+            owner:UpdateRestingPosition()
+        end
     end
     changing = false
 end

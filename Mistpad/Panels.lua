@@ -57,7 +57,7 @@ function M:CreatePanel(name, title, width, height)
     events:RegisterEvent("PLAYER_REGEN_DISABLED")
     events:SetScript("OnEvent", function(_, event)
         if event == "PLAYER_REGEN_DISABLED" then frame:Hide()
-        elseif frame:IsShown() and not frame.dragging and not frame.opening and not frame:IsMouseOver() then frame:Hide() end
+        elseif frame:IsShown() and not frame.keepOpen and not frame.dragging and not frame.opening and not frame:IsMouseOver() then frame:Hide() end
     end)
     frame:Hide()
     table.insert(UISpecialFrames, name)

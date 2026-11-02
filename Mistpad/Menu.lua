@@ -13,9 +13,12 @@ function M:CreateMenu()
     function panel:Refresh()
         self.entries = M:GetMicroMenuEntries()
         local width = UIParent.GetWidth and UIParent:GetWidth() or 1280
-        local columns = math.max(1, math.min(#self.entries, math.floor((width - 92) / 88)))
-        local rows = math.max(1, math.ceil(#self.entries / columns))
-        self:SetSize(math.max(240, columns * 88 - 4 + 48), 12 + rows * 168 + 12)
+        local count = math.max(1, #self.entries)
+        local rowWidth = count * 88 - 4
+        -- Always keep one row. Scale tiles uniformly to fit narrower screens,
+        -- retaining the artwork's proportions and the full set of buttons.
+        local tileScale = math.min(1, math.max(1, width - 96) / rowWidth)
+        self:SetSize(math.max(240, rowWidth * tileScale + 48), 24 + 168 * tileScale)
         for _, button in ipairs(buttons) do button:Hide() end
         for index, entry in ipairs(self.entries) do
             local button = buttons[index]
@@ -40,7 +43,7 @@ function M:CreateMenu()
                 button:SetScript("OnEnter", function(self)
                     self.hovered = true; self:UpdateArtwork(self.entry.source)
                     GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
-                    GameTooltip:SetText(self.entry.source.disabledTooltip or self.entry.source.tooltipText or self.entry.label)
+                    GameTooltip:SetText(self.entry.contacts and "Contacts" or self.entry.source.disabledTooltip or self.entry.source.tooltipText or self.entry.label)
                     GameTooltip:Show()
                 end)
                 button:SetScript("OnLeave", function(self)
@@ -48,7 +51,7 @@ function M:CreateMenu()
                     self:UpdateArtwork(self.entry.source); GameTooltip:Hide()
                 end)
                 button:SetScript("OnClick", function(self)
-                    if panel.dragging or panel.opening or not M:CanChange() or not self.entry.source:IsEnabled() then return end
+                    if panel.dragging or panel.opening or not M:CanChange() or (not self.entry.contacts and not self.entry.source:IsEnabled()) then return end
                     panel:Hide()
                     M:ActivateMicroEntry(self.entry, self)
                 end)
@@ -57,10 +60,9 @@ function M:CreateMenu()
             button.entry = entry
             button.pressed, button.hovered = false, false
             button.label:SetText(entry.label)
-            local row, column = math.floor((index - 1) / columns), (index - 1) % columns
-            local rowCount = math.min(columns, #self.entries - row * columns)
-            local inset = (self:GetWidth() - (rowCount * 88 - 4)) / 2
-            button:ClearAllPoints(); button:SetPoint("TOPLEFT", inset + column * 88, -12 - row * 168)
+            local inset = (self:GetWidth() - rowWidth * tileScale) / 2
+            button:SetScale(tileScale)
+            button:ClearAllPoints(); button:SetPoint("TOPLEFT", self, "TOPLEFT", inset / tileScale + (index - 1) * 88, -12 / tileScale)
             button:UpdateArtwork(entry.source)
             button:Show()
         end

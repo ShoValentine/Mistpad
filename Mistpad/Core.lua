@@ -38,6 +38,15 @@ events:SetScript("OnEvent", function(_, event)
     if event == "PLAYER_LOGIN" then
         MistpadDB = type(MistpadDB) == "table" and MistpadDB or {}
         M.db = MistpadDB
+        M.db.scales = nil -- Retired native-frame scaling experiment.
+        M.db.characterScales = nil -- Retired custom Character panel settings.
+        M.db.professionsScales = nil -- Retired placeholder settings.
+        -- Retire developer overrides; fixed sizes live in ScaleDefaults.lua.
+        M.db.blizzFrameScales = nil
+        M.db.talentWindowDefaultReset = nil
+        M.db.spellsWindow110Default = nil
+        local page=type(M.db.talentCanvas)=="table" and M.db.talentCanvas.page
+        M.db.talentCanvas = {page=page=="spec" and "spec" or "class"}
         if M.db.inventory == nil then M.db.inventory = true end
         if M.db.gestures == nil then M.db.gestures = true end
         if M.db.animation == nil then M.db.animation = true end
@@ -78,7 +87,7 @@ events:SetScript("OnEvent", function(_, event)
             M:RefreshInventory()
         elseif event == "ADDON_LOADED" then
             M:InstallInventory()
-        end
+            end
     end
 end)
 
@@ -87,6 +96,7 @@ SlashCmdList.MISTPAD = function(input)
     if not M.ready then M:Print("Not active. Check for WoWU and reload."); return end
     local command = strtrim(input or ""):lower()
     if command == "" then M:ToggleMenu()
+    elseif command == "character" or command == "character original" then M:ToggleCharacterPanel()
     elseif command == "bags" then M:ToggleInventory()
     elseif command == "gestures" then
         if not M:CanChange() then return end

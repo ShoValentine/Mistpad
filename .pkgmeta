@@ -1,0 +1,18 @@
+# Stage the repository under a distinct name so its nested addon can move
+# into the final, installable Mistpad folder without a name collision.
+package-as: Mistpad-release
+
+enable-nolib-creation: no
+
+move-folders:
+  Mistpad-release/Mistpad: Mistpad
+
+ignore:
+  - docs
+  - tests
+  - README.md
+  - CHANGELOG.md
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown

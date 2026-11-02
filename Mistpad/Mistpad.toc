@@ -1,8 +1,8 @@
 ## Interface: 120000, 120001, 120005, 120007, 120100
 ## Title: Mistpad
-## Notes: Handheld window interface. Early retail prototype.
+## Notes: Touch-friendly handheld window interface for Retail.
 ## Author: Mistpad
-## Version: 0.8.0
+## Version: 1.0.0
 ## SavedVariables: MistpadDB
 Core.lua
 Panels.lua
@@ -13,6 +13,11 @@ ItemActions.lua
 ItemContext.lua
 Inventory.lua
 SidePanels.lua
+ScaleDefaults.lua
+BlizzFrameScaling.lua
+TalentScaling.lua
+TalentPages.lua
+PlayerSpellsTouch.lua
 NativePanels.lua
 MicroMenu.lua
 Settings.lua

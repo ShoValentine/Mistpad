@@ -10,7 +10,7 @@ local definitions = {
     {"LFDMicroButton", "DUNGEONS_BUTTON", "Group Finder"},
     {"CollectionsMicroButton", "COLLECTIONS", "Collections"},
     {"EJMicroButton", "ADVENTURE_JOURNAL", "Adventure\nGuide"},
-    {"HelpMicroButton", "HELP_BUTTON", "Customer\nSupport"},
+    {"HelpMicroButton", nil, "Contacts"},
     {"StoreMicroButton", "BLIZZARD_STORE", "Shop"},
     {"MainMenuMicroButton", nil, "Settings"},
 }
@@ -33,7 +33,7 @@ function M:GetMicroMenuEntries()
             local name = source:GetName()
             local definition = names[name]
             entries[#entries + 1] = {source = source, name = name,
-                label = definition and definition[3] or source.tooltipText or name}
+                label = definition and definition[3] or source.tooltipText or name, contacts = name == "HelpMicroButton"}
         end
     end
     return entries
@@ -53,9 +53,37 @@ function M:CreateMicroArtwork(button)
     canvas:SetSize(32, 40)
     canvas:SetPoint("CENTER", clip, "CENTER")
     canvas:EnableMouse(false)
+    local glowFrame=CreateFrame("Frame",nil,clip)
+    glowFrame:SetAllPoints(clip);glowFrame:EnableMouse(false)
+    glowFrame:SetFrameLevel(canvas:GetFrameLevel()+1)
+    local glow=glowFrame:CreateTexture(nil,"OVERLAY")
+    glow:SetTexture("Interface\\Buttons\\UI-ActionButton-Border")
+    glow:SetBlendMode("ADD");glow:SetVertexColor(1,.8,.15,.85)
+    glow:SetSize(104,112);glow:SetPoint("CENTER",clip,"CENTER")
+    glow:Hide()
     local copies = {}
     local mask
     function button:UpdateArtwork(source)
+        glow:SetShown(self.hovered and (self.entry and self.entry.contacts or source:IsEnabled()))
+        if self.entry and self.entry.contacts then
+            for _, copy in pairs(copies) do copy:Hide() end
+            canvas:Hide()
+            if not self.contactsIcon then
+                self.contactsBackground=clip:CreateTexture(nil,"BACKGROUND")
+                self.contactsBackground:SetSize(64,80)
+                self.contactsBackground:SetPoint("CENTER",clip,"CENTER")
+                self.contactsIcon=clip:CreateTexture(nil,"ARTWORK")
+                self.contactsIcon:SetTexture("Interface\\FriendsFrame\\Battlenet-Portrait")
+                self.contactsIcon:SetSize(56,56);self.contactsIcon:SetPoint("CENTER",clip,"CENTER",0,0)
+            end
+            self.contactsBackground:SetAtlas(self.pressed and "UI-HUD-MicroMenu-ButtonBG-Down" or "UI-HUD-MicroMenu-ButtonBG-Up")
+            self.contactsBackground:Show()
+            self.contactsIcon:Show();self:SetEnabled(true);self:SetAlpha(1)
+            return
+        end
+        if self.contactsIcon then self.contactsIcon:Hide() end
+        if self.contactsBackground then self.contactsBackground:Hide() end
+        canvas:Show()
         canvas:SetSize(source:GetWidth(), source:GetHeight())
         local enabled = source:IsEnabled()
         self:SetEnabled(enabled)
@@ -86,9 +114,9 @@ function M:CreateMicroArtwork(button)
                             copy:SetPoint("TOPLEFT", canvas, "TOPLEFT", x * ratio - originX, y * ratio - originY)
                         else copy:SetPoint("CENTER", canvas, "CENTER") end
                         local shown = region:IsShown()
-                        if region == normal then shown = enabled and not pressed and not self.hovered
+                        if region == normal then shown = enabled and not pressed
                         elseif region == pushed then shown = enabled and pressed
-                        elseif region == highlight then shown = enabled and self.hovered and not pressed
+                        elseif region == highlight then shown = false -- Independent gold glow preserves the normal artwork.
                         elseif region == disabled then shown = not enabled
                         elseif region == source.Background then shown = not pressed
                         elseif region == source.PushedBackground or region == source.PushedShadow then shown = pressed end
@@ -125,8 +153,17 @@ function M:CreateMicroArtwork(button)
 end
 
 function M:ActivateMicroEntry(entry, tile)
-    if not self:CanChange() or not entry.source:IsEnabled() then return end
+    if not self:CanChange() or (not entry.contacts and not entry.source:IsEnabled()) then return end
+    if entry.contacts then ToggleFriendsFrame(1); return end
     if entry.name == "MainMenuMicroButton" then self:ShowMistpadSettings(); return end
+    if entry.name == "CharacterMicroButton" and self.ToggleCharacterPanel then self:ToggleCharacterPanel(); return end
     local click = entry.source:GetScript("OnClick")
     if click then click(entry.source, "LeftButton", false) end
+end
+
+function M:OpenMicroWindow(name)
+    for _,entry in ipairs(self:GetMicroMenuEntries()) do
+        if entry.name==name then self:ActivateMicroEntry(entry);return end
+    end
+    self:Print("This window is not available for the current character.")
 end
