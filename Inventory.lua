@@ -41,43 +41,58 @@ local function StopTouch()
 end
 
 local function BeginTouch(button, mouseButton)
-    if M.IsContextOpeningTouch and M:IsContextOpeningTouch(button) then return end
-    if button then button.mistpadScrolled = false; button.mistpadContextOpen = false end
-    if mouseButton ~= "LeftButton" or InCombatLockdown() or not M.db.inventory then return end
+    if mouseButton ~= "LeftButton" then return end
+    if button then button.mistpadTouchConsumed = false end
+    if InCombatLockdown() or not M.db.inventory then return end
     if button and not button.mistpadItemEnabled then return end
     if CursorHasItem() or IsModifiedClick() then return end
     if M.HideItemContext then M:HideItemContext() end
     local x, y = GetCursorPosition()
-    touch = {button = button, x = x, y = y, offset = scroll:GetVerticalScroll(), time = GetTime()}
+    local item
+    if button then
+        button.mistpadTouchConsumed = true
+        item = M:SnapshotItem(button:GetBagID(), button:GetID())
+    end
+    touch = {button = button, item = item, x = x, y = y,
+        offset = scroll:GetVerticalScroll(), time = GetTime()}
     pointer:Show()
+end
+
+local function TouchMovement(gesture)
+    local x, y = GetCursorPosition()
+    local scale = scroll:GetEffectiveScale()
+    local delta = (y - gesture.y) / scale
+    return delta, math.max(math.abs(delta), math.abs(x - gesture.x) / scale) > 10
+end
+
+local function HoldElapsed(gesture)
+    return GetTime() - gesture.time >= (M.db.dragHoldTime or 0.5)
 end
 
 pointer:SetScript("OnUpdate", function()
     if not touch then pointer:Hide(); return end
-    if InCombatLockdown() or not scroll:IsShown() or not M.db.inventory then StopTouch(); return end
-    local x, y = GetCursorPosition()
-    local delta = (y - touch.y) / scroll:GetEffectiveScale()
-    local sideways = math.abs(x - touch.x) / scroll:GetEffectiveScale()
-    if not IsMouseButtonDown("LeftButton") then StopTouch(); return end
-    if math.max(math.abs(delta), sideways) > 10 and not touch.moved then
-        if touch.button and GetTime() - touch.time >= 0.45 then
-            local button = touch.button
-            local saved = itemStates[button]
-            StopTouch()
-            if saved.drag then saved.drag(button, "LeftButton") end
-            return
-        end
+    if InCombatLockdown() or not scroll:IsShown() or not M.db.inventory
+        or not IsMouseButtonDown("LeftButton") then
+        StopTouch()
+        return
+    end
+    local delta, moved = TouchMovement(touch)
+    if moved and not touch.moved then
         touch.moved = true
-        if touch.button then touch.button.mistpadScrolled = true end
         GameTooltip:Hide()
     end
-    if touch.moved then SetScroll(touch.offset + delta) end
-    if touch.button and not touch.moved and GetTime() - touch.time >= (M.db.holdTime or 1.5) then
-        local button = touch.button
-        button.mistpadScrolled = true
-        button.mistpadContextOpen = true
+    if touch.moved then
+        SetScroll(touch.offset + delta)
+    elseif touch.button and touch.item and HoldElapsed(touch) then
+        local button, item = touch.button, touch.item
+        local saved = itemStates[button]
         StopTouch()
-        M:ShowItemContext(button)
+        if saved and saved.drag and not CursorHasItem()
+            and button:GetBagID() == item.bag and button:GetID() == item.slot
+            and M:IsCurrentItem(item) then
+            GameTooltip:Hide()
+            saved.drag(button, "LeftButton")
+        end
     end
 end)
 
@@ -94,31 +109,28 @@ local function AdaptItem(button)
         button.mistpadTouchHook = true
         button:HookScript("OnMouseDown", BeginTouch)
     end
-    button:SetScript("OnDragStart", function(self, mouseButton)
-        if self.mistpadContextOpen then return end
-        if not self.mistpadItemEnabled or not touch or touch.button ~= self then
-            if saved.drag then saved.drag(self, mouseButton) end
-        elseif GetTime() - touch.time >= 0.45 and not touch.moved then
-            StopTouch()
-            if saved.drag then saved.drag(self, mouseButton) end
-        end
-        -- A quick drag is consumed by the scroll tracker, rather than picking up an item.
+    button:SetScript("OnDragStart", function(self, mouseButton, ...)
+        -- The touch tracker handles pickup and scrolling for plain left presses.
+        if mouseButton == "LeftButton" and self.mistpadTouchConsumed then return end
+        if saved.drag then saved.drag(self, mouseButton, ...) end
     end)
-    button:SetScript("OnClick", function(self, mouseButton)
-        if self.mistpadContextOpen then self.mistpadScrolled = false; return end
-        -- The release event can arrive before the next polling tick on a fast swipe.
-        if touch and touch.button == self then
-            local x, y = GetCursorPosition()
-            local delta = (y - touch.y) / scroll:GetEffectiveScale()
-            local sideways = math.abs(x - touch.x) / scroll:GetEffectiveScale()
-            if math.max(math.abs(delta), sideways) > 10 then
-                self.mistpadScrolled = true
-                SetScroll(touch.offset + delta)
-            end
-            StopTouch()
+    button:SetScript("OnClick", function(self, mouseButton, down, ...)
+        if mouseButton ~= "LeftButton" or not self.mistpadTouchConsumed then
+            if saved.click then saved.click(self, mouseButton, down, ...) end
+            return
         end
-        if self.mistpadScrolled then self.mistpadScrolled = false; return end
-        if saved.click then saved.click(self, mouseButton) end
+        if down or not touch or touch.button ~= self then return end
+        local gesture = touch
+        local delta, moved = TouchMovement(gesture)
+        StopTouch()
+        if InCombatLockdown() then return end
+        if gesture.moved or moved then
+            SetScroll(gesture.offset + delta)
+        elseif not HoldElapsed(gesture) and not CursorHasItem()
+            and gesture.item and self:GetBagID() == gesture.item.bag
+            and self:GetID() == gesture.item.slot and M:IsCurrentItem(gesture.item) then
+            M:ShowItemContext(self)
+        end
     end)
 end
 

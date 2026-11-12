@@ -60,7 +60,7 @@ function M:CreateBagOptions(changed)
         sliders[key] = {widget = slider, label = text, name = label, format = format}
     end
     Slider("itemSize", "Item Size", 32, 80, 4, -216, "%d")
-    Slider("holdTime", "Hold for menu", 0.5, 3, 0.25, -310, "%.2f seconds")
+    Slider("dragHoldTime", "Hold to drag", 0.5, 3, 0.25, -310, "%.2f seconds")
     Slider("maxRows", "Max Height (rows)", 1, 16, 1, -394, "%d")
     local anchorTitle = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     anchorTitle:SetPoint("TOPLEFT", 22, -486); anchorTitle:SetText("Anchor")
@@ -78,7 +78,7 @@ function M:CreateBagOptions(changed)
         panel.syncing = true
         for key, button in pairs(checks) do button:SetChecked(M.db[key]) end
         for key, entry in pairs(sliders) do
-            local value = M.db[key] or ({itemSize = 48, holdTime = 1.5, maxRows = 8})[key]
+            local value = M.db[key] or ({itemSize = 48, dragHoldTime = 0.5, maxRows = 8})[key]
             entry.widget:SetValue(value)
             entry.label:SetText(entry.name .. ": " .. string.format(entry.format, value))
         end

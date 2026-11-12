@@ -1,3 +1,8 @@
+# Mistpad 1.0.2
+
+- Added WoW: Forever 1.60.1 to the supported client metadata.
+- Tap an item to open its action menu. Press and hold to pick it up for dragging. Quick swipes still scroll the bags.
+
 # Mistpad 1.0.1
 
 - Fixed CurseForge packaging by placing Mistpad.toc and the addon files at the repository root.

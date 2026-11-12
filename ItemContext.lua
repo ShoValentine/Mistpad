@@ -15,13 +15,9 @@ function M:IsItemContextMouseOver()
     return popup and popup:IsMouseOver() or false
 end
 
-function M:IsContextOpeningTouch(source)
-    return menu and menu:IsShown() and menu.source == source and not menu.armed
-end
-
 local function Valid(item)
     if InCombatLockdown() or not M:IsCurrentItem(item) then
-        M:Print("That item changed or is unavailable. Hold it again to refresh the menu.")
+        M:Print("That item changed or is unavailable. Tap it again to refresh the menu.")
         return false
     end
     return true

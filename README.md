@@ -1,6 +1,10 @@
 # Mistpad
 
-A standalone handheld window interface for World of Warcraft, targeting the Steam Deck's 1280×800 touchscreen. Development targets Retail first, followed by a WoW: Forever compatibility pass after its planned 4 November 2026 release. No WoWU dependency, companion application or external art package. Disable WoWU when using Mistpad.
+A standalone handheld window interface for World of Warcraft Retail and WoW: Forever, targeting the Steam Deck's 1280×800 touchscreen. No WoWU dependency, companion application or external art package. Disable WoWU when using Mistpad.
+
+## Version 1.0.2
+
+The same package targets Retail and WoW: Forever 1.60.1. Tap an item to open its action menu, or hold to pick it up for dragging. Quick swipes scroll the bags.
 
 ## Version 1.0.1
 
@@ -147,7 +151,7 @@ This is the first custom Character build. Model framing, texture alignment, rest
 
 ## Install
 
-Copy the inner `Mistpad` folder from the ZIP into Retail's `Interface/AddOns/`. The resulting path must be `Interface/AddOns/Mistpad/Mistpad.toc`. Disable WoWU and enable Mistpad. Combined bags must be enabled for the inventory module. Interface metadata is provisional; report `/mistpad status` if the client marks the addon out of date.
+Copy the inner `Mistpad` folder from the ZIP into `_retail_/Interface/AddOns/` for Retail or `_forever_/Interface/AddOns/` for Forever. Disable WoWU and enable Mistpad. Enable combined bags for the inventory module. Use `/mistpad status` to report your client build if you encounter a compatibility issue.
 
 Commands: `/mistpad`, `/mistpad character`, `/mistpad character original`, `/mistpad scaling`, `/mistpad bags`, `/mistpad inventory`, `/mistpad gestures`, `/mistpad animation`, `/mistpad status`.
 

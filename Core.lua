@@ -56,7 +56,7 @@ events:SetScript("OnEvent", function(_, event)
         if M.db.dynamicContents == nil then M.db.dynamicContents = false end
         if M.db.searchBar == nil then M.db.searchBar = false end
         M.db.itemSize = math.max(32, math.min(80, tonumber(M.db.itemSize) or 48))
-        M.db.holdTime = math.max(0.5, math.min(3, tonumber(M.db.holdTime) or 1.5))
+        M.db.dragHoldTime = math.max(0.5, math.min(3, tonumber(M.db.dragHoldTime) or 0.5))
         M.db.maxRows = math.max(1, math.min(16, math.floor(tonumber(M.db.maxRows) or 8)))
         if M.db.bagAnchor ~= "left" and M.db.bagAnchor ~= "right" then M.db.bagAnchor = "middle" end
         if not M.SidePanelTargets[M.db.leftPanel] then M.db.leftPanel = "character" end
